@@ -1,6 +1,6 @@
 # Zeta API
 
-## GET /wishes?from=10&to=20
+## GET /wishes?from=10&to=20&filter=abc
 
 Returns list of Wishes, starting with newest, ordered by creation time.
 List start and end can be set by params.
@@ -13,11 +13,13 @@ This number limit can be set by environment variable `REACT_APP_WISHES_LENGTH`, 
 | ----- | ---- | ---- | ----------- |
 | from | Query | Non-negative integer | Return Wishes from this index |
 | to | Query | Non-negative integer | Return Wishes to this index |
+| filter | Query | String | Filters by Wish title and description |
 
 ### 200
 
     [{   
         id: 1,
+        user: '/users/123',
         title: 'Title of the Wish',
         description: 'Description of the Wish',
         images: [
@@ -46,6 +48,7 @@ When no Wish is found by the passed `id`, returns 404.
 
     {   
         id: 1,
+        user: '/users/123',
         title: 'Title of the Wish',
         description: 'Description of the Wish',
         images: [
@@ -96,6 +99,7 @@ When no Wish is found with `id, returns 404.
     [  
         {
             id: 1,
+            user: '/users/123',
             description: 'Offer text...',
             images: [
                 'http://image-source.jpg',
@@ -114,6 +118,7 @@ When no Wish is found with `id, returns 404.
 
     {
         id: 1,
+        user: '/users/123',
         description: 'Offer text...',
         images: [
             'http://image-source.jpg',
