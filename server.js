@@ -1,8 +1,38 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+var passport = require('passport');
+var Auth0Strategy = require('passport-auth0');
+var session = require('express-session');
 const db = require('./app/db')
+const authRouter = require('./app/routes/auth')
 const {body, validationResult} = require('express-validator')
+
+var strategy = new Auth0Strategy(
+  {
+    domain: process.env.AUTH0_DOMAIN,
+    clientID: process.env.AUTH0_CLIENT_ID,
+    clientSecret: process.env.AUTH0_CLIENT_SECRET,
+    callbackURL: process.env.AUTH0_CALLBACK_URL || 'http://localhost:3000/callback',
+  },
+  function (accessToken, refreshToken, extraParams, profile, done) {
+    // accessToken is the token to call Auth0 API (not needed in the most cases)
+    // extraParams.id_token has the JSON Web Token
+    // profile has all the information from the user
+    return done(null, profile);
+  }
+);
+
+passport.use(strategy);
+
+// You can use this section to keep a smaller payload
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function (user, done) {
+  done(null, user);
+});
 
 // region SETUP
 
@@ -11,6 +41,34 @@ const corsOptions = {
   origin: 'http://localhost:8081',
 }
 const now = () => new Date(Date.now()).toLocaleString()
+
+// config express-session
+const sess = {
+  secret: 'CHANGE THIS SECRET',
+  cookie: {},
+  resave: false,
+  saveUninitialized: true
+};
+
+if (app.get('env') === 'production') {
+  // If you are using a hosting provider which uses a proxy (eg. Heroku),
+  // comment in the following app.set configuration command
+  //
+  // Trust first proxy, to prevent "Unable to verify authorization request state."
+  // errors with passport-auth0.
+  // Ref: https://github.com/auth0/passport-auth0/issues/70#issuecomment-480771614
+  // Ref: https://www.npmjs.com/package/express-session#cookiesecure
+  // app.set('trust proxy', 1);
+
+  sess.cookie.secure = true; // serve secure cookies, requires https
+}
+
+app.use(session(sess));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/', authRouter);
 
 app.use(cors(corsOptions))
 
@@ -61,7 +119,8 @@ app.post('/api/wishes',
       return res.status(400).json(errors);
     }
 
-    db.wishes.create(req.body)
+    // userId is hard coded for now
+    db.wishes.create(req.body, 'user1@mail.com')
       .then(wishId => res.json(wishId))
       .catch(error => {
         console.trace(error)

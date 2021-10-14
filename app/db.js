@@ -42,15 +42,9 @@ module.exports = {
         INSERT INTO wishes (user_id, title, description, images, created)
         VALUES (?, ?, ?, '[]', NOW())
       `
-      const [result] = await connection.query(sql, ['user1', 'title1', 'desc1'])
+      const [result] = await connection.query(sql, [userId, wish.title, wish.description])
       console.trace(result)
       return result.insertId
-
-      /*wish.id = wishId++
-      wishes.push(wish)
-      console.trace('Wish created', wishes
-      )
-      return wish.id*/
     },
     update: async function(wish) {
 
