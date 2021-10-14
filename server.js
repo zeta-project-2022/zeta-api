@@ -6,6 +6,8 @@ var Auth0Strategy = require('passport-auth0');
 var session = require('express-session');
 const db = require('./app/db')
 const authRouter = require('./app/routes/auth')
+const usersRouter = require('./app/routes/users')
+const wishesRouter = require('./app/routes/wishes')
 const {body, validationResult} = require('express-validator')
 
 var strategy = new Auth0Strategy(
@@ -68,14 +70,16 @@ app.use(session(sess));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/', authRouter);
-
 app.use(cors(corsOptions))
 
 app.use(bodyParser.json())
-
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.use('/', authRouter);
+app.use('/', usersRouter);
+app.use('/', wishesRouter);
+
+// Log every incoming request
 app.use(function(req, res, next) {
   console.log(`\n--------${now()}---------`)
   console.trace(`${req.method} ${req.url}`)
@@ -88,6 +92,10 @@ app.use(function(req, res, next) {
 //endregion
 
 //region ENDPOINTS
+
+app.get('/', function(req, res) {
+  res.json('hello from Zeta API')
+})
 
 app.get('/api/wishes', async function(req, res) {
   const wishes = await db.wishes.getAll()
